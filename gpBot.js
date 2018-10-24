@@ -82,89 +82,95 @@ app.post('/groupme', function (req, res) {
 			postToGroup(s);
 		}
 
-		// post the lenny face when asked. 
-		// the lenny face text is in a saved file in the tools folder. 
-		if (args[0] == "(len)" || args[0] == "lenny" || args[0] == "!len") {
-			fs.readFile(TOOLS_FOLDER + 'lenny.txt', "utf8", function (err, data) {
-				postToGroup(data);
-			});
-		}
+		switch (args[0]) {
 
-		// get tcount - a random number between 1 and 100. 
-		// NO REROLLS
-		if (args[0] == "!tcount") {
-			var num = Math.floor(Math.random() * Math.floor(100)) + 1;
-			var numString = "tcount: " + num;
-			postToGroup(numString);
-		}
+			// post the lenny face when asked. 
+			// the lenny face text is in a saved file in the tools folder. 
+			case "(len)":
+			case "lenny":
+			case "!len":
+				fs.readFile(TOOLS_FOLDER + 'lenny.txt', "utf8", function (err, data) {
+					postToGroup(data);
+				});
+				break;
 
-		// Call the pupper bot when cute pics are needed. 
-		if (args[0] == "sos" || args[0] == "!sos" || args[0] == "!pup") {
-			pupper_bot();
-		}
+			// get tcount - a random number between 1 and 100. 
+			// NO REROLLS
+			case "!tcount":
+				var num = Math.floor(Math.random() * Math.floor(100)) + 1;
+				var numString = "tcount: " + num;
+				postToGroup(numString);
+				break;
 
-		// call the wikipedia random fact bot. 
-		if (args[0] == "!wikifact") {
-			// new args are needed because the args array
-			// is all in lower case. The Wikipedia API is 
-			// case sensitive (for all title words after the first). 
-			var newArgs = message.text.split(" ");
+			// Call the pupper bot when cute pics are needed. 
+			case "sos":
+			case "!sos":
+			case "!pup":
+				pupper_bot();
+				break;
 
-			// if there's a word after "wikifact" find the article
-			if (newArgs[1]) {
-				var article = newArgs[1];
-				var i = 1;
-				while (newArgs[++i]) {
-					article += "%20" + newArgs[i];
+			// call the wikipedia random fact bot. 
+			case "!wikifact":
+				// new args are needed because the args array
+				// is all in lower case. The Wikipedia API is 
+				// case sensitive (for all title words after the first). 
+				var newArgs = message.text.split(" ");
+
+				// if there's a word after "wikifact" find the article
+				if (newArgs[1]) {
+					var article = newArgs[1];
+					var i = 1;
+					while (newArgs[++i]) {
+						article += "%20" + newArgs[i];
+					}
+					randomSentenceFromWikipedia(article);
+				} else {
+					postToGroup("Enter an article title");
 				}
-				randomSentenceFromWikipedia(article);
-			} else {
-				postToGroup("Enter an article title");
-			}
-		}
+				break;
 
-
-		// This calls the xkcd api module. Posts image and alt text for 
-		// a random, or a specified XKCD comic. 
-		if (args[0] == "!xkcd") {
-			if (args[1]) {
-				if (args[1] == "latest") {
-					xkcd.latest(function (error, response) {
-						if (error) console.error(error);
-						else makeXKCDPost(response);
-					});
-				} else if (args[1] == "random") {
+			// This calls the xkcd api module. Posts image and alt text for 
+			// a random, or a specified XKCD comic. 
+			case "!xkcd":
+				if (args[1]) {
+					if (args[1] == "latest") {
+						xkcd.latest(function (error, response) {
+							if (error) console.error(error);
+							else makeXKCDPost(response);
+						});
+					} else if (args[1] == "random") {
+						xkcd.random(function (error, response) {
+							if (error) console.error(error);
+							else makeXKCDPost(response);
+						});
+					} else if (args[1] == "help") {
+						postToGroup("Get latest comic: '!xkcd latest'" +
+							"\nGet random comic: !xkcd or " +
+							"!xkcd random\nGetspecific comic: " +
+							"!xkcd 274"
+						);
+					} else if (isNaN(args[1])) {
+						postToGroup("Command not recognized. try !xkcd help");
+					} else {
+						xkcd.get(args[1], function (error, response) {
+							if (error) console.error(error);
+							else makeXKCDPost(response);
+						});
+					}
+				} else {
 					xkcd.random(function (error, response) {
 						if (error) console.error(error);
 						else makeXKCDPost(response);
 					});
-				} else if (args[1] == "help") {
-					postToGroup("Get latest comic: '!xkcd latest'" +
-						"\nGet random comic: !xkcd or " +
-						"!xkcd random\nGetspecific comic: " +
-						"!xkcd 274"
-					);
-				} else if (isNaN(args[1])) {
-					postToGroup("Command not recognized. try !xkcd help");
-				} else {
-					xkcd.get(args[1], function (error, response) {
-						if (error) console.error(error);
-						else makeXKCDPost(response);
-					});
 				}
-			} else {
-				xkcd.random(function (error, response) {
-					if (error) console.error(error);
-					else makeXKCDPost(response);
-				});
-			}
-		}
+				break;
 
-		// This posts an amusing picture when asked. 
-		// The picture is hosted from the tools folder. 
-		if (args[0] == "!balls") {
-			postToGroup("http://preznix.shawnrast.com:" + PORT +
-				"/groupme/balls.jpg");
+			// This posts an amusing picture when asked. 
+			// The picture is hosted from the tools folder. 
+			case "!balls":
+				postToGroup("http://preznix.shawnrast.com:" + PORT +
+					"/groupme/balls.jpg");
+				break;
 		}
 	});
 });
