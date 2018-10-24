@@ -171,6 +171,8 @@ app.post('/groupme', function (req, res) {
 				postToGroup("http://preznix.shawnrast.com:" + PORT +
 					"/groupme/balls.jpg");
 				break;
+			case "!beans":
+				getNonSticky(1, 'beansinthings');
 		}
 	});
 });
@@ -196,7 +198,7 @@ function randomSentenceFromWikipedia(article) {
 	},
 
 		function (error, response, body) {
-			console.log(error);
+			if (error) console.log(error);
 			var article = JSON.parse(body);
 			try {
 
