@@ -13,18 +13,17 @@ var TEST_MODE = false;
 var TEST_PORT = 2501;
 var PORT = 2500;
 
-
 var botID =  "";
 var testID = "";
 var botName = "gp_bot";
 
 // Run in test mode, if the -tets arg is present. 
 process.argv.forEach(function (arg) {
-     if (arg == "-test") {
-        TEST_MODE = true;
-        PORT = TEST_PORT;
-        botID = testID;
-     } 
+	if (arg == "-test") {
+		TEST_MODE = true;
+		PORT = TEST_PORT;
+		botID = testID;
+	}
 });
 
 // The tools folder holds any files this requires.
@@ -47,150 +46,160 @@ var xkcd = require('xkcd-api'); // api for grabbing XKCD comics
 
 
 // Hosts an image. 
-app.get("/groupme/balls.jpg", function(req, res) {
-    res.sendFile("balls.jpg", {root: path.join(__dirname, TOOLS_FOLDER)});
+app.get("/groupme/balls.jpg", function (req, res) {
+	res.sendFile("balls.jpg", { root: path.join(__dirname, TOOLS_FOLDER) });
 });
 
 // This is called whenever a message is sent in groupme. 
 // The groupme bot system sends the message in a post request. 
-app.post('/groupme', function(req, res) {
+app.post('/groupme', function (req, res) {
 
-    var string = ""; // post data string
+	var string = ""; // post data string
 
-    // build the data string
-    req.on('data', function(data) {
-        string += data;
-    });
+	// build the data string
+	req.on('data', function (data) {
+		string += data;
+	});
 
-    // when body is complete
-    req.on('end', function(){
-        var message = JSON.parse(string);
+	// when body is complete
+	req.on('end', function () {
+		var message = JSON.parse(string);
 
-	// this ignores case when parsing commands to the bot.
-        var args = message.text.toLowerCase().split(" ");
+		// this ignores case when parsing commands to the bot.
+		var args = message.text.toLowerCase().split(" ");
 
-	// this allows the bot to ignore its own posts, causing a loop.     
-        if (message.name == botName) return;        
- 
-	
-	// RESPONDING TO COMMANDS
-
-	// if something truly heinous is posted, 
-	// clear the screen by posting a really long message. 
-	if(message.text.toLowerCase() == "get that off my screen") {
-            var s = "Okay!\nI'll\nget\nthat\noff\nof" +
-		"\nyour\nscreen\nno\nproblem.\n\n\n";
-
-            postToGroup(s);
-       	}
-
-	// post the lenny face when asked. 
-	// the lenny face text is in a saved file in the tools folder. 
-	if (args[0] == "(len)" || args[0] == "lenny" || args[0] == "!len") {
-            fs.readFile(TOOLS_FOLDER + 'lenny.txt', "utf8", function(err,data) {
-                postToGroup(data);
-            });
-        }
-   
-	// get tcount - a random number between 1 and 100. 
-	// NO REROLLS
-        if (args[0] == "!tcount") {
-                var num = Math.floor(Math.random() * Math.floor(100)) + 1;
-                var numString = "tcount: " + num;
-                postToGroup(numString);
-        }
-
-	// Call the pupper bot when cute pics are needed. 
-	if (args[0] == "sos" || args[0] == "!sos" || args[0] == "!pup"){
-		pupper_bot();
-	}
-
-	//Pay respects.
-	if (args[0] == "f" && payRespects){
-		postToGroup("F");
-		payRespects = false;
-		setTimeout(function() {
-			payRespects = true;
-		}, 10000);
-	}
-
-	// call the wikipedia random fact bot. 
-	if (args[0] == "!wikifact") {
-		// new args are needed because the args array
-		// is all in lower case. The Wikipedia API is 
-		// case sensitive (for all title words after the first). 
-		var newArgs = message.text.split(" ");
-
-		// if there's a word after "wikifact" find the article
-		if (newArgs[1]) {
-			var article = newArgs[1];
-			var i = 1;
-			while (newArgs[++i]) {
-				article += "%20" + newArgs[i];
-			}
-			randomSentenceFromWikipedia(article);
-		} else {
-			postToGroup("Enter an article title");
-		}
-	}
+		// this allows the bot to ignore its own posts, causing a loop.     
+		if (message.name == botName) return;
 
 
-	// This calls the xkcd api module. Posts image and alt text for 
-	// a random, or a specified XKCD comic. 
-	if (args[0] == "!xkcd"){
-		if (args[1]){
-			if (args[1] == "latest"){
-				xkcd.latest(function(error, response) {
-					if (error) console.error(error);
-					else makeXKCDPost(response);
+		// RESPONDING TO COMMANDS
+
+		// if something truly heinous is posted, 
+		// clear the screen by posting a really long message. 
+		if (message.text.toLowerCase() == "get that off my screen") {
+			var s = "Okay!\nI'll\nget\nthat\noff\nof" +
+				"\nyour\nscreen\nno\nproblem.\n\n\n";
+
+			postToGroup(s);
+
+	  	}
+		//Pay respects.
+		if (args[0] == "f" && payRespects){
+			postToGroup("F");
+			payRespects = false;
+			setTimeout(function() {
+				payRespects = true;
+			}, 10000);
+    	}
+
+
+		switch (args[0]) {
+
+			// post the lenny face when asked. 
+			// the lenny face text is in a saved file in the tools folder. 
+			case "(len)":
+			case "lenny":
+			case "!len":
+				fs.readFile(TOOLS_FOLDER + 'lenny.txt', "utf8", function (err, data) {
+					postToGroup(data);
 				});
-			} else if (args[1] == "random") {
-				xkcd.random(function(error, response) {
-					if (error) console.error(error);
-					else makeXKCDPost(response);
-				});
-			} else if (args[1] == "help") {
-				postToGroup("Get latest comic: '!xkcd latest'"+
-					"\nGet random comic: !xkcd or " + 
-					"!xkcd random\nGetspecific comic: " + 
-					"!xkcd 274"
-				);
-			} else if (isNaN(args[1])) {
-				postToGroup("Command not recognized. try !xkcd help");
-			} else {
-				xkcd.get(args[1], function(error, response) {
-					if (error) console.error(error);
-					else makeXKCDPost(response);
-				});
-			}
-		} else {
-			xkcd.random(function(error, response) {
-				if (error) console.error(error);
-				else makeXKCDPost(response);
-			});
-		}
-	}
-	
-	// This posts an amusing picture when asked. 
-	// The picture is hosted from the tools folder. 
-        if (args[0] == "!balls") {
-            postToGroup("http://preznix.shawnrast.com:" + PORT + 
-                "/groupme/balls.jpg");
-        }
+				break;
 
-	for (var index = 0; index<args.length; index++){
-		if (args[index] == "rediculous"){
-			postToGroup("*ridiculous");
-			break;
+			// get tcount - a random number between 1 and 100. 
+			// NO REROLLS
+			case "!tcount":
+				var num = Math.floor(Math.random() * Math.floor(100)) + 1;
+				var numString = "tcount: " + num;
+				postToGroup(numString);
+				break;
+
+			// Call the pupper bot when cute pics are needed. 
+			case "sos":
+			case "!sos":
+			case "!pup":
+				pupper_bot();
+				break;
+
+			// call the wikipedia random fact bot. 
+			case "!wikifact":
+				// new args are needed because the args array
+				// is all in lower case. The Wikipedia API is 
+				// case sensitive (for all title words after the first). 
+				var newArgs = message.text.split(" ");
+
+				// if there's a word after "wikifact" find the article
+				if (newArgs[1]) {
+					var article = newArgs[1];
+					var i = 1;
+					while (newArgs[++i]) {
+						article += "%20" + newArgs[i];
+					}
+					randomSentenceFromWikipedia(article);
+				} else {
+					postToGroup("Enter an article title");
+				}
+				break;
+
+			// This calls the xkcd api module. Posts image and alt text for 
+			// a random, or a specified XKCD comic. 
+			case "!xkcd":
+				if (args[1]) {
+					if (args[1] == "latest") {
+						xkcd.latest(function (error, response) {
+							if (error) console.error(error);
+							else makeXKCDPost(response);
+						});
+					} else if (args[1] == "random") {
+						xkcd.random(function (error, response) {
+							if (error) console.error(error);
+							else makeXKCDPost(response);
+						});
+					} else if (args[1] == "help") {
+						postToGroup("Get latest comic: '!xkcd latest'" +
+							"\nGet random comic: !xkcd or " +
+							"!xkcd random\nGetspecific comic: " +
+							"!xkcd 274"
+						);
+					} else if (isNaN(args[1])) {
+						postToGroup("Command not recognized. try !xkcd help");
+					} else {
+						xkcd.get(args[1], function (error, response) {
+							if (error) console.error(error);
+							else makeXKCDPost(response);
+						});
+					}
+				} else {
+					xkcd.random(function (error, response) {
+						if (error) console.error(error);
+						else makeXKCDPost(response);
+					});
+				}
+				break;
+
+			// This posts an amusing picture when asked. 
+			// The picture is hosted from the tools folder. 
+			case "!balls":
+				postToGroup("http://preznix.shawnrast.com:" + PORT +
+					"/groupme/balls.jpg");
+				break;
+			case "!beans":
+				getNonSticky(1, 'beansinthings');
 		}
-	}
-    });
+
+		for (var index = 0; index<args.length; index++){
+			if (args[index] == "rediculous"){
+				  postToGroup("*ridiculous");
+				  break;
+		    }
+	    }
+  });
+
 });
 
 
 // This crafts two posts from a comic object from the 
 // XKCD api - one with the image and one with the alt text. 
-function makeXKCDPost(comic){
+function makeXKCDPost(comic) {
 	postToGroup(comic.img);
 	postToGroup("Title: " + comic.title + "\nalt: " + comic.alt);
 }
@@ -200,15 +209,15 @@ function makeXKCDPost(comic){
 function randomSentenceFromWikipedia(article) {
 
 	// uses wikipedia's API
-	var url = 'https://en.wikipedia.org/w/api.php?' + 
+	var url = 'https://en.wikipedia.org/w/api.php?' +
 		'action=query&prop=extracts&explaintext&format=json&&titles=' + article;
 	request({
 		url: url,
 		method: "GET"
-		},
+	},
 
-		function(error, response, body){
-			console.log(error);
+		function (error, response, body) {
+			if (error) console.log(error);
 			var article = JSON.parse(body);
 			try {
 
@@ -216,11 +225,11 @@ function randomSentenceFromWikipedia(article) {
 				// because Wikipedia's api returns the article
 				// inside an object whose name changes every 
 				// single time. 
-				
+
 				article = article.query.pages;
 				var keys = Object.keys(article);
 				article = article[keys[0]].extract;
-				
+
 				if (article == "") {
 					postToGroup("article not found");
 				} else {
@@ -230,29 +239,29 @@ function randomSentenceFromWikipedia(article) {
 					// any random sentence pulled from that area
 					// would only be a citatation. 
 					var i = article.indexOf("Further reading");
-					if (i != -1){
+					if (i != -1) {
 						article = article.substring(0, i);
 					}
 
 					// Split the entire article into
 					// an array of sentences.
 					var articleArray = article.split(". ");
-					
+
 					// pick a random sentence. 
 					var sentence = articleArray[
 						Math.floor(
-							Math.random()*
+							Math.random() *
 							articleArray.length
 						)
 					];
-					
+
 					// add the period back to the sentence
 					// (it is removed by the split command)
 					// and post it to the group
 					postToGroup(sentence + ".");
-					
+
 				}
-			} catch(error) {
+			} catch (error) {
 				// A lot can go wrong with the wikipedia API - 
 				// I wrote this really quickly and couldn't figure out
 				// all of the nuance in a half hour. 
@@ -270,18 +279,18 @@ function randomSentenceFromWikipedia(article) {
 // Posts the specified text to the group the bot is in. 
 function postToGroup(text) {
 	request({
-	    url: 'https://api.groupme.com/v3/bots/post',
-	    method: "POST",
-	    json: true,
-	    body : {
-		"bot_id" : botID,
-		"text" : text 
-	    }
+		url: 'https://api.groupme.com/v3/bots/post',
+		method: "POST",
+		json: true,
+		body: {
+			"bot_id": botID,
+			"text": text
+		}
 	},
-	  function(error, response, body) {
-	    console.log(body);
-	    console.log(error);
-	  }
+		function (error, response, body) {
+			console.log(body);
+			console.log(error);
+		}
 	);
 }
 
@@ -291,25 +300,26 @@ function postToGroup(text) {
 // subIndex is global to ensure that they get looped through. 
 var subIndex = 0;
 function pupper_bot() {
-    var sublist = [
-	    "germanshepherds",
-	    "corgis", 
-	    "rarepuppers", 
-	    "greyhounds", 
-	    "greatpyrenees", 
-	    "husky", 
-	    "kittens", 
-	    "tippytaps", 
-	    "trashpandas", 
-	    "aww", 
-	    "eyebleach", 
-	    "blep", 
-	    "puppies"
-    ];
+	var sublist = [
+		"germanshepherds",
+		"corgis",
+		"rarepuppers",
+		"greyhounds",
+		"italiangreyhounds",
+		"greatpyrenees",
+		"husky",
+		"kittens",
+		"tippytaps",
+		"trashpandas",
+		"aww",
+		"eyebleach",
+		"blep",
+		"puppies"
+	];
 
-    var sub = sublist[subIndex++];
-    if (subIndex >= sublist.length) subIndex = 0;
-    getNonSticky(1, sub);
+	var sub = sublist[subIndex++];
+	if (subIndex >= sublist.length) subIndex = 0;
+	getNonSticky(1, sub);
 
 }
 
@@ -325,31 +335,32 @@ function pupper_bot() {
 // Then the first 3, then 4, then so on. 
 //
 // It eventually posts the very first non-stickied post to the group.
-function getNonSticky (i, subreddit) {
+function getNonSticky(i, subreddit) {
 
-    request({
-        url: 'https://reddit.com/r/' + subreddit + '/hot.json?limit=' + i
+	request({
+		url: 'https://reddit.com/r/' + subreddit + '/hot.json?limit=' + i
 
-    }, function(error, response, body) {
-        var data = JSON.parse(body).data;
-        var content = data.children[i-1].data.url;
-        if (data.children[i-1].data.stickied) {
-            i++;
-            getNonSticky(i, subreddit);
-        } else {
-            if (content) {
-                postToGroup(content);
-            } else {
-		// if the hot post from any of the subreddit somehow
-		// doesn't contain an image, it tells the group.
-                postToGroup("not an image, sorry");
-            }
+	}, function (error, response, body) {
+		var data = JSON.parse(body).data;
+		var content = data.children[i - 1].data.url;
+		if (data.children[i - 1].data.stickied) {
+			i++;
+			getNonSticky(i, subreddit);
+		} else {
+			if (content) {
+				postToGroup(content);
+			} else {
+				// if the hot post from any of the subreddit somehow
+				// doesn't contain an image, it tells the group.
+				postToGroup("not an image, sorry");
+			}
 
-        }
-    });
+		}
+	});
 }
 
 // this just runs the app on the specified port. 
-app.listen(PORT, function() {
-    console.log('listening on ' + PORT);
+app.listen(PORT, function () {
+	console.log('listening on ' + PORT);
 });
+
