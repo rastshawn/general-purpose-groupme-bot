@@ -34,6 +34,8 @@ process.argv.forEach(function (arg) {
 // in order to avoid having very long (or complicated) strings in this code. 
 var TOOLS_FOLDER = "gpBot_tools/";
 
+// timeout-set to avoid posting every time. 
+var payRespects = true;
 
 // MODULES
 var path = require('path'); // accessing tools folder
@@ -103,6 +105,15 @@ app.post('/groupme', function(req, res) {
 		pupper_bot();
 	}
 
+	//Pay respects.
+	if (args[0] == "f" && payRespects){
+		postToGroup("F");
+		payRespects = false;
+		setTimeout(function() {
+			payRespects = true;
+		}, 10000);
+	}
+
 	// call the wikipedia random fact bot. 
 	if (args[0] == "!wikifact") {
 		// new args are needed because the args array
@@ -166,6 +177,13 @@ app.post('/groupme', function(req, res) {
             postToGroup("http://preznix.shawnrast.com:" + PORT + 
                 "/groupme/balls.jpg");
         }
+
+	for (var index = 0; index<args.length; index++){
+		if (args[index] == "rediculous"){
+			postToGroup("*ridiculous");
+			break;
+		}
+	}
     });
 });
 
