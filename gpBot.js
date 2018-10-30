@@ -13,9 +13,11 @@ var TEST_MODE = false;
 var TEST_PORT = 2501;
 var PORT = 2500;
 
-var botID =  "";
-var testID = "";
-var botName = "gp_bot";
+var config = require('./config');
+
+var botID = config.botID; 
+var testID = config.testID; 
+var botName = config.botName;
 
 // Run in test mode, if the -tets arg is present. 
 process.argv.forEach(function (arg) {
@@ -289,7 +291,7 @@ function postToGroup(text) {
 	},
 		function (error, response, body) {
 			console.log(body);
-			console.log(error);
+			console.log("error " + error);
 		}
 	);
 }
