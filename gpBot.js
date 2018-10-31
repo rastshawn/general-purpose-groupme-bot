@@ -178,9 +178,14 @@ app.post('/groupme', function (req, res) {
 			// This posts an amusing picture when asked. 
 			// The picture is hosted from the tools folder. 
 			case "!balls":
-				postToGroup("http://preznix.shawnrast.com:" + PORT +
-					"/pics/balls.jpg");
-				break;
+				postLocalImage("balls.jpg");
+                break;
+            case "!approve":
+                postLocalImage("kodiApprove.jpg");
+                break;
+            case "!reject":
+                postLocalImage("kodiReject.jpg");
+                break;
 			case "!beans":
 				getNonSticky(1, 'beansinthings');
 		}
@@ -356,6 +361,10 @@ function getNonSticky(i, subreddit) {
 
 		}
 	});
+}
+
+function postLocalImage(filename){
+    postToGroup(`http://preznix.shawnrast.com:${PORT}/pics/${filename}`);
 }
 
 // this just runs the app on the specified port. 
