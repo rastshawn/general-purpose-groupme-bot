@@ -46,11 +46,8 @@ var fs = require('fs'); // for writing information, like the swear jar
 var request = require('request'); // for reading Wikipedia 
 var xkcd = require('xkcd-api'); // api for grabbing XKCD comics
 
-
-// Hosts an image. 
-app.get("/groupme/balls.jpg", function (req, res) {
-	res.sendFile("balls.jpg", { root: path.join(__dirname, TOOLS_FOLDER) });
-});
+// Host an image folder
+app.use("/pics", express.static(path.join(__dirname, TOOLS_FOLDER+'images')));
 
 // This is called whenever a message is sent in groupme. 
 // The groupme bot system sends the message in a post request. 
@@ -182,7 +179,7 @@ app.post('/groupme', function (req, res) {
 			// The picture is hosted from the tools folder. 
 			case "!balls":
 				postToGroup("http://preznix.shawnrast.com:" + PORT +
-					"/groupme/balls.jpg");
+					"/pics/balls.jpg");
 				break;
 			case "!beans":
 				getNonSticky(1, 'beansinthings');
