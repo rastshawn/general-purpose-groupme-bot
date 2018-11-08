@@ -107,11 +107,12 @@ app.post('/groupme', function (req, res) {
 			// get tcount - a random number between 1 and 100. 
 			// NO REROLLS
 			case "!tcount":
-				var num = Math.floor(Math.random() * Math.floor(100)) + 1;
-				var numString = "tcount: " + num;
-				postToGroup(numString);
+				
+				tCount(message);
 				break;
-
+			case "!tstats":
+				tStats(message);
+				break;
 			// Call the pupper bot when cute pics are needed. 
 			case "sos":
 			case "!sos":
@@ -366,6 +367,66 @@ function getNonSticky(i, subreddit) {
 function postLocalImage(filename){
     postToGroup(`http://preznix.shawnrast.com:${PORT}/pics/${filename}`);
 }
+
+function tCount(messageObj) {
+
+	// this is where the magic happens
+	var tcount = Math.floor(Math.random() * Math.floor(100)) + 1;
+	
+
+	var userTypedTcount = messageObj.text.substr(1); // remove !
+	postToGroup(`${userTypedTcount}: ${tcount}`);
+	
+	addTStatsToDatabase(tcount, messageObj);
+
+	// check if something interesting has occured, example:
+	
+		// if this is [user]'s (n>3)th day in a row of t>80:
+			// print "This is [user]'s nth good day in a row!
+		
+		// if 69 nice
+
+		// check for matches and neighbors, post (maybe tag)	
+}
+
+function tStats(message) {
+	// handle printing stats to user
+
+
+	// if normal, print:
+	// today: 
+		// highest: [name from db] with 88
+		// lowest: [name from db] with 10
+	// this week:
+		// highest average: [name from db] with 70
+		// lowest average: [name from db] with 40
+		// highest: [name from db] with 100 on [date]
+		// lowest: [name from db] with 3 on [date]
+
+
+	// if more, print:
+		//foreach member
+			// [name from db]:
+				// average this week: 77.4
+				// average last week: 51.2
+		
+}
+
+function addTStatsToDatabase(messageObj){
+	
+	// user = getUser(groupmeUserId)
+	// if user is null
+		// make a new user
+	// else if user.name != message.user.name
+		// update saved name
+
+	//	// add record to database now
+
+	// addRecord(tcount, groupmeUserId, new Date())
+
+}
+
+
 
 // this just runs the app on the specified port. 
 app.listen(PORT, function () {
