@@ -303,9 +303,8 @@ function postToGroup(text) {
 		}
 	},
 		function (error, response, body) {
-			console.log(body);
-			console.log("error " + error);
-		}
+		    if (error) throw error;
+        }
 	);
 }
 
@@ -434,15 +433,23 @@ function addTStatsToDatabase(tcount, messageObj){
 
 	// addRecord(tcount, groupmeUserId, new Date())
 
+    var user = {
+        "GroupMeUserID" : messageObj.user_id,
+        "Name" : messageObj.name
+    }
+
     // handle user
     // check if user is in db
-    let query = `SELECT * FROM User WHERE GroupMeUserID = ${messageObj.user.id}`;
+    let query = `SELECT * FROM User WHERE GroupMeUserID = ${user.GroupMeUserID}`;
     db.query(query, (err, result) => {
+        if (err) throw err;
+
         if (result) {
             // user exists - check if name has changed
-            
+            console.log(result);    
         } else {
             // make a new user
+               
         }
     });
 
