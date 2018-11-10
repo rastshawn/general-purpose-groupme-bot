@@ -48,12 +48,22 @@ var xkcd = require('xkcd-api'); // api for grabbing XKCD comics
 const mysql = require('mysql'); // db
 
 // set up db
-const dbCredentials = config.dbCreds;
+let dbCredentials = config.dbCreds;
+dbCredentials.charset = "utf8mb4";
 let db = mysql.createConnection(dbCredentials);
 db.connect((err) => {
     if (err) throw err;
     console.log("connected to database");
 });
+// wrap in promises
+db.Query = (query) => {
+    return new Promise((resolve, reject) => {
+        db.query(query, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+};
 
 
 // Host an image folder
@@ -438,22 +448,48 @@ function addTStatsToDatabase(tcount, messageObj){
         "Name" : messageObj.name
     }
 
+        let addUser = (user) => {
+        return db.Query(`INSERT INTO User(GroupMeUserID, Name) VALUES(${user.GroupMeUserID}, '${user.Name}')`);
+    };
+    let updateUser = (user) => {
+        return db.Query(`UPDATE User SET Name='${user.Name}' WHERE GroupMeUserID=${user.GroupMeUserID}`);
+    }
+
+
     // handle user
     // check if user is in db
     let query = `SELECT * FROM User WHERE GroupMeUserID = ${user.GroupMeUserID}`;
-    db.query(query, (err, result) => {
-        if (err) throw err;
 
-        if (result) {
-            // user exists - check if name has changed
-            console.log(result);    
+    db.Query(query).then((result) => {
+        if (result.length > 0) {
+            // user is in db, do names match?
+            console.log("user is in db");
+            // check if stored name matches current display name
+            console.log(result);
+            if (result[0].Name == user.Name) {
+                // names match, do nothing
+                return result;
+            } else {
+                return updateUser(user);
+            }
         } else {
-            // make a new user
-               
+            return addUser(user);
         }
+    }).then(() => {
+        // insert t record into database
+        let query = `INSERT INTO TCount(GroupMeUserID, t) VALUES(${user.GroupMeUserID}, ${tcount})`;
+        return db.Query(query);
+    }).then((result) => {
+        console.log("result of tcount insert");
+        console.log(result);
+    }).catch((e) => {
+        console.log("catch block");
+        throw e;  
     });
 
 }
+
+
 
 
 
