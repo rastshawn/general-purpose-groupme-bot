@@ -48,7 +48,7 @@ var xkcd = require('xkcd-api'); // api for grabbing XKCD comics
 const mysql = require('mysql'); // db
 
 // set up db
-const dbCredentials config.sql.credentials;
+const dbCredentials = config.dbCreds;
 let db = mysql.createConnection(dbCredentials);
 db.connect((err) => {
     if (err) throw err;
