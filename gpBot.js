@@ -45,6 +45,16 @@ var app = express();
 var fs = require('fs'); // for writing information, like the swear jar
 var request = require('request'); // for reading Wikipedia 
 var xkcd = require('xkcd-api'); // api for grabbing XKCD comics
+const mysql = require('mysql'); // db
+
+// set up db
+const dbCredentials config.sql.credentials;
+let db = mysql.createConnection(dbCredentials);
+db.connect((err) => {
+    if (err) throw err;
+    console.log("connected to database");
+});
+
 
 // Host an image folder
 app.use("/pics", express.static(path.join(__dirname, TOOLS_FOLDER+'images')));
@@ -412,7 +422,7 @@ function tStats(message) {
 		
 }
 
-function addTStatsToDatabase(messageObj){
+function addTStatsToDatabase(tcount, messageObj){
 	
 	// user = getUser(groupmeUserId)
 	// if user is null
@@ -423,6 +433,18 @@ function addTStatsToDatabase(messageObj){
 	//	// add record to database now
 
 	// addRecord(tcount, groupmeUserId, new Date())
+
+    // handle user
+    // check if user is in db
+    let query = `SELECT * FROM User WHERE GroupMeUserID = ${messageObj.user.id}`;
+    db.query(query, (err, result) => {
+        if (result) {
+            // user exists - check if name has changed
+            
+        } else {
+            // make a new user
+        }
+    });
 
 }
 
