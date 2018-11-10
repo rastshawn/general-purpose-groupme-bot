@@ -1,15 +1,16 @@
---DROP TABLE IF EXISTS `User`;
 
 -- ALTER DATABASE tcount CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin
 
+DROP TABLE IF EXISTS `User`;
 CREATE TABLE `User` (
     `GroupMeUserID` int NOT NULL,
     `Name` varchar(255) NOT NULL,
     PRIMARY KEY (`GroupMeUserID`)
 )
 ;
-ALTER TABLE `User` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_bin
--- DROP TABLE IF EXISTS `TCount`
+ALTER TABLE `User` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+
+DROP TABLE IF EXISTS `TCount`;
 CREATE TABLE `TCount` (
     `TCountID` int NOT NULL AUTO_INCREMENT,
     `t` int NOT NULL,

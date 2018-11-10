@@ -394,9 +394,14 @@ function tCount(messageObj) {
 	
 
 	var userTypedTcount = messageObj.text.substr(1); // remove !
-	postToGroup(`${userTypedTcount}: ${tcount}`);
 	
-	addTStatsToDatabase(tcount, messageObj);
+	addTStatsToDatabase(tcount, messageObj).then((isReroll) => {
+        if (!isReroll) {
+	        postToGroup(`${userTypedTcount}: ${tcount}`);
+        } else {
+            postToGroup('NO REROLLS');
+        }
+    });
 
 	// check if something interesting has occured, example:
 	
@@ -432,61 +437,83 @@ function tStats(message) {
 }
 
 function addTStatsToDatabase(tcount, messageObj){
-	
-	// user = getUser(groupmeUserId)
-	// if user is null
-		// make a new user
-	// else if user.name != message.user.name
-		// update saved name
 
-	//	// add record to database now
+    return new Promise((resolve, reject) => {
+        // user = getUser(groupmeUserId)
+        // if user is null
+            // make a new user
+        // else if user.name != message.user.name
+            // update saved name
 
-	// addRecord(tcount, groupmeUserId, new Date())
+        //	// add record to database now
 
-    var user = {
-        "GroupMeUserID" : messageObj.user_id,
-        "Name" : messageObj.name
-    }
+        // addRecord(tcount, groupmeUserId, new Date())
+
+        var user = {
+            "GroupMeUserID" : messageObj.user_id,
+            "Name" : messageObj.name
+        }
 
         let addUser = (user) => {
-        return db.Query(`INSERT INTO User(GroupMeUserID, Name) VALUES(${user.GroupMeUserID}, '${user.Name}')`);
-    };
-    let updateUser = (user) => {
-        return db.Query(`UPDATE User SET Name='${user.Name}' WHERE GroupMeUserID=${user.GroupMeUserID}`);
-    }
-
-
-    // handle user
-    // check if user is in db
-    let query = `SELECT * FROM User WHERE GroupMeUserID = ${user.GroupMeUserID}`;
-
-    db.Query(query).then((result) => {
-        if (result.length > 0) {
-            // user is in db, do names match?
-            console.log("user is in db");
-            // check if stored name matches current display name
-            console.log(result);
-            if (result[0].Name == user.Name) {
-                // names match, do nothing
-                return result;
-            } else {
-                return updateUser(user);
-            }
-        } else {
-            return addUser(user);
+            return db.Query(`INSERT INTO User(GroupMeUserID, Name) VALUES(${user.GroupMeUserID}, '${user.Name}')`);
+        };
+        let updateUser = (user) => {
+            return db.Query(`UPDATE User SET Name='${user.Name}' WHERE GroupMeUserID=${user.GroupMeUserID}`);
         }
-    }).then(() => {
-        // insert t record into database
-        let query = `INSERT INTO TCount(GroupMeUserID, t) VALUES(${user.GroupMeUserID}, ${tcount})`;
-        return db.Query(query);
-    }).then((result) => {
-        console.log("result of tcount insert");
-        console.log(result);
-    }).catch((e) => {
-        console.log("catch block");
-        throw e;  
-    });
 
+        let checkForRerolls = (user) => {
+            let today = new Date();
+            const offset = today.getTimezoneOffset() * 60 * 1000;
+
+            // adapted from https://stackoverflow.com/questions/23593052/format-javascript-date-to-yyyy-mm-dd
+            let yesterdayDateString = new Date(today.getTime() + offset - (3600*24*1000)).toISOString().split('T')[0];
+            let tomorrowDateString = new Date(today.getTime() + offset + (3600*24*1000)).toISOString().split('T')[0];
+
+            // datestring should now be in format 
+                    // yyyy-mm-dd
+            return db.Query(`SELECT * FROM TCount WHERE GroupMeUserID = ${user.GroupMeUserID} AND ` + 
+                                `time BETWEEN '${yesterdayDateString}' AND '${tomorrowDateString}'`);
+        }
+
+
+        // handle user
+        // check if user is in db
+        let query = `SELECT * FROM User WHERE GroupMeUserID = ${user.GroupMeUserID}`;
+
+        db.Query(query).then((result) => {
+            if (result.length > 0) {
+                // user is in db, do names match?
+                console.log("user is in db");
+                // check if stored name matches current display name
+                console.log(result);
+                if (result[0].Name == user.Name) {
+                    // names match, do nothing
+                    return result;
+                } else {
+                    return updateUser(user);
+                }
+            } else {
+                return addUser(user);
+            }
+        }).then(() => {
+            return checkForRerolls(user);
+        }).then((result) => {
+            // if a reroll, SHAME
+            if (result.length > 0) {
+                resolve(true); 
+                return;
+            } else {
+                // insert t record into database
+                let query = `INSERT INTO TCount(GroupMeUserID, t) VALUES(${user.GroupMeUserID}, ${tcount})`;
+                return db.Query(query);
+            }
+        }).then(() => {
+           resolve(false); 
+        }).catch((e) => {
+            console.log('tcount insert error');
+            console.log(e); 
+        });
+    });
 }
 
 
