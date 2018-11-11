@@ -52,7 +52,7 @@ let dbCredentials = config.dbCreds;
 dbCredentials.charset = "utf8mb4";
 let db = mysql.createConnection(dbCredentials);
 db.connect((err) => {
-    if (err) throw err;
+    if (err) postToGroup("bot needs restarted, db error");
     console.log("connected to database");
 });
 // wrap in promises
@@ -313,7 +313,7 @@ function postToGroup(text) {
 		}
 	},
 		function (error, response, body) {
-		    if (error) throw error;
+		    if (error) console.log(error);
         }
 	);
 }
@@ -466,9 +466,12 @@ function addTStatsToDatabase(tcount, messageObj){
             const offset = today.getTimezoneOffset() * 60 * 1000;
 
             // adapted from https://stackoverflow.com/questions/23593052/format-javascript-date-to-yyyy-mm-dd
-            let yesterdayDateString = new Date(today.getTime() + offset - (3600*24*1000)).toISOString().split('T')[0];
-            let tomorrowDateString = new Date(today.getTime() + offset + (3600*24*1000)).toISOString().split('T')[0];
-
+            // offsets are because toiso moves to utc which is not what we want here
+            let yesterday = new Date(today.getTime() - offset - (3600*24*1000)).toISOString();
+            let tomorrow = new Date(today.getTime() - offset + (3600*24*1000)).toISOString();
+            let yesterdayDateString = yesterday.split('T')[0];
+            let tomorrowDateString = tomorrow.split('T')[0];
+            
             // datestring should now be in format 
                     // yyyy-mm-dd
             return db.Query(`SELECT * FROM TCount WHERE GroupMeUserID = ${user.GroupMeUserID} AND ` + 
