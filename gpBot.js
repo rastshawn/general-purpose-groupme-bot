@@ -1,4 +1,4 @@
-// GroupMe Bot
+// Gte(new Date().getTime() - new Date().getTimezoneOffset()*1000*60)
 // Copyright 2018 
 // Shawn Rast
 // rastshawn@gmail.com
@@ -50,17 +50,33 @@ const mysql = require('mysql'); // db
 // set up db
 let dbCredentials = config.dbCreds;
 dbCredentials.charset = "utf8mb4";
-let db = mysql.createConnection(dbCredentials);
-db.connect((err) => {
-    if (err) postToGroup("bot needs restarted, db error");
-    console.log("connected to database");
-});
+var db;
+let Connect = () => {
+    db = mysql.createConnection(dbCredentials);
+    return new Promise((resolve, reject) => {
+        db.connect((err) => {
+            if (err) {
+                postToGroup("bot needs restarted, db error");
+                console.log(err);
+                reject("db issue");
+            } else {
+                console.log("connected to database");
+                resolve();
+            }
+        });
+    });
+};
+
 // wrap in promises
-db.Query = (query) => {
+let Query = (query) => {
     return new Promise((resolve, reject) => {
         db.query(query, (err, result) => {
-            if (err) return reject(err);
-            resolve(result);
+            if (err) {
+                console.log(error);
+                reject(err);
+            } else { 
+                resolve(result);
+            }
         });
     });
 };
@@ -455,10 +471,10 @@ function addTStatsToDatabase(tcount, messageObj){
         }
 
         let addUser = (user) => {
-            return db.Query(`INSERT INTO User(GroupMeUserID, Name) VALUES(${user.GroupMeUserID}, '${user.Name}')`);
+            return Query(`INSERT INTO User(GroupMeUserID, Name) VALUES(${user.GroupMeUserID}, '${user.Name}')`);
         };
         let updateUser = (user) => {
-            return db.Query(`UPDATE User SET Name='${user.Name}' WHERE GroupMeUserID=${user.GroupMeUserID}`);
+            return Query(`UPDATE User SET Name='${user.Name}' WHERE GroupMeUserID=${user.GroupMeUserID}`);
         }
 
         let checkForRerolls = (user) => {
@@ -474,7 +490,7 @@ function addTStatsToDatabase(tcount, messageObj){
             
             // datestring should now be in format 
                     // yyyy-mm-dd
-            return db.Query(`SELECT * FROM TCount WHERE GroupMeUserID = ${user.GroupMeUserID} AND ` + 
+            return Query(`SELECT * FROM TCount WHERE GroupMeUserID = ${user.GroupMeUserID} AND ` + 
                                 `time BETWEEN '${yesterdayDateString}' AND '${tomorrowDateString}'`);
         }
 
@@ -483,7 +499,9 @@ function addTStatsToDatabase(tcount, messageObj){
         // check if user is in db
         let query = `SELECT * FROM User WHERE GroupMeUserID = ${user.GroupMeUserID}`;
 
-        db.Query(query).then((result) => {
+        Connect().then(() => {
+            return Query(query);
+        }).then((result) => {
             if (result.length > 0) {
                 // user is in db, do names match?
                 console.log("user is in db");
@@ -508,10 +526,15 @@ function addTStatsToDatabase(tcount, messageObj){
             } else {
                 // insert t record into database
                 let query = `INSERT INTO TCount(GroupMeUserID, t) VALUES(${user.GroupMeUserID}, ${tcount})`;
-                return db.Query(query);
+                return Query(query);
             }
         }).then(() => {
            resolve(false); 
+        }).then(()=> {
+            db.end((err) => {
+                if (err) 
+                    console.log(err);
+            });
         }).catch((e) => {
             console.log('tcount insert error');
             console.log(e); 
