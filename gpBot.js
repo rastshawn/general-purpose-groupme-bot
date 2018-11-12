@@ -415,7 +415,7 @@ function tCount(messageObj) {
         if (!isReroll) {
 	        postToGroup(`${userTypedTcount}: ${tcount}`);
         } else {
-            postToGroup('NO REROLLS');
+            postToGroup('N O R E R O L L S');
         }
     });
 
@@ -483,15 +483,15 @@ function addTStatsToDatabase(tcount, messageObj){
 
             // adapted from https://stackoverflow.com/questions/23593052/format-javascript-date-to-yyyy-mm-dd
             // offsets are because toiso moves to utc which is not what we want here
-            let yesterday = new Date(today.getTime() - offset - (3600*24*1000)).toISOString();
+            let todayAdjusted = new Date(today.getTime() - offset).toISOString();
             let tomorrow = new Date(today.getTime() - offset + (3600*24*1000)).toISOString();
-            let yesterdayDateString = yesterday.split('T')[0];
+            let todayDateString = todayAdjusted.split('T')[0];
             let tomorrowDateString = tomorrow.split('T')[0];
-            
+           
             // datestring should now be in format 
                     // yyyy-mm-dd
             return Query(`SELECT * FROM TCount WHERE GroupMeUserID = ${user.GroupMeUserID} AND ` + 
-                                `time BETWEEN '${yesterdayDateString}' AND '${tomorrowDateString}'`);
+                                `time BETWEEN '${todayDateString}' AND '${tomorrowDateString}'`);
         }
 
 
@@ -521,6 +521,7 @@ function addTStatsToDatabase(tcount, messageObj){
         }).then((result) => {
             // if a reroll, SHAME
             if (result.length > 0) {
+                console.log("result is present, must be reroll");
                 resolve(true); 
                 return;
             } else {
