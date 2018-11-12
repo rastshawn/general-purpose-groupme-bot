@@ -430,7 +430,23 @@ function tCount(messageObj) {
 }
 
 function tStats(message) {
-	// handle printing stats to user
+    let query = "CALL week_average()";
+	
+    Connect().then(() => {
+        return Query(query);
+    }).then((results) => {
+        console.log(results);
+        let message = 'Last 7 day stats:\n';
+        for (let i = 0; i<results[0].length; i++){
+            let user = results[0][i];
+            message += `${user.Name}: ${user.AverageT}\n`;
+        }
+        postToGroup(message);
+    }).catch((e) => {
+        console.log(e);  
+    });
+    
+    // handle printing stats to user
 
 
 	// if normal, print:
