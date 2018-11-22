@@ -1,4 +1,3 @@
-// Gte(new Date().getTime() - new Date().getTimezoneOffset()*1000*60)
 // Copyright 2018 
 // Shawn Rast
 // rastshawn@gmail.com
@@ -98,145 +97,147 @@ app.post('/groupme', function (req, res) {
 
 	// when body is complete
 	req.on('end', function () {
-		var message = JSON.parse(string);
-
-		// this ignores case when parsing commands to the bot.
-		var args = message.text.toLowerCase().split(" ");
-
-		// this allows the bot to ignore its own posts, causing a loop.     
-		if (message.name == botName) return;
-
-
-		// RESPONDING TO COMMANDS
-
-		// if something truly heinous is posted, 
-		// clear the screen by posting a really long message. 
-		if (message.text.toLowerCase() == "get that off my screen") {
-			var s = "Okay!\nI'll\nget\nthat\noff\nof" +
-				"\nyour\nscreen\nno\nproblem.\n\n\n";
-
-			postToGroup(s);
-
-	  	}
-		//Pay respects.
-		if (args[0] == "f" && payRespects){
-			postToGroup("F");
-			payRespects = false;
-			setTimeout(function() {
-				payRespects = true;
-			}, 10000);
-    	}
-
-
-		switch (args[0]) {
-
-			// post the lenny face when asked. 
-			// the lenny face text is in a saved file in the tools folder. 
-			case "(len)":
-			case "lenny":
-			case "!len":
-				fs.readFile(TOOLS_FOLDER + 'lenny.txt', "utf8", function (err, data) {
-					postToGroup(data);
-				});
-				break;
-
-			// get tcount - a random number between 1 and 100. 
-			// NO REROLLS
-			case "!tcount":
-				
-				tCount(message);
-				break;
-			case "!tstats":
-				tStats(message);
-				break;
-			// Call the pupper bot when cute pics are needed. 
-			case "sos":
-			case "!sos":
-			case "!pup":
-				pupper_bot();
-				break;
-
-			// call the wikipedia random fact bot. 
-			case "!wikifact":
-				// new args are needed because the args array
-				// is all in lower case. The Wikipedia API is 
-				// case sensitive (for all title words after the first). 
-				var newArgs = message.text.split(" ");
-
-				// if there's a word after "wikifact" find the article
-				if (newArgs[1]) {
-					var article = newArgs[1];
-					var i = 1;
-					while (newArgs[++i]) {
-						article += "%20" + newArgs[i];
-					}
-					randomSentenceFromWikipedia(article);
-				} else {
-					postToGroup("Enter an article title");
-				}
-				break;
-
-			// This calls the xkcd api module. Posts image and alt text for 
-			// a random, or a specified XKCD comic. 
-			case "!xkcd":
-				if (args[1]) {
-					if (args[1] == "latest") {
-						xkcd.latest(function (error, response) {
-							if (error) console.error(error);
-							else makeXKCDPost(response);
-						});
-					} else if (args[1] == "random") {
-						xkcd.random(function (error, response) {
-							if (error) console.error(error);
-							else makeXKCDPost(response);
-						});
-					} else if (args[1] == "help") {
-						postToGroup("Get latest comic: '!xkcd latest'" +
-							"\nGet random comic: !xkcd or " +
-							"!xkcd random\nGetspecific comic: " +
-							"!xkcd 274"
-						);
-					} else if (isNaN(args[1])) {
-						postToGroup("Command not recognized. try !xkcd help");
-					} else {
-						xkcd.get(args[1], function (error, response) {
-							if (error) console.error(error);
-							else makeXKCDPost(response);
-						});
-					}
-				} else {
-					xkcd.random(function (error, response) {
-						if (error) console.error(error);
-						else makeXKCDPost(response);
-					});
-				}
-				break;
-
-			// This posts an amusing picture when asked. 
-			// The picture is hosted from the tools folder. 
-			case "!balls":
-				postLocalImage("balls.jpg");
-                break;
-            case "!approve":
-                postLocalImage("kodiApprove.jpg");
-                break;
-            case "!reject":
-                postLocalImage("kodiReject.jpg");
-                break;
-			case "!beans":
-				getNonSticky(1, 'beansinthings');
-		}
-
-		for (var index = 0; index<args.length; index++){
-			if (args[index] == "rediculous"){
-				  postToGroup("*ridiculous");
-				  break;
-		    }
-	    }
-  });
-
+        let message = JSON.parse(string);
+        handleMessage(message);
+    });
 });
 
+function handleMessage(message) {
+
+    // this ignores case when parsing commands to the bot.
+    var args = message.text.toLowerCase().split(" ");
+
+    // this allows the bot to ignore its own posts, causing a loop.     
+    if (message.name == botName) return;
+
+
+    // RESPONDING TO COMMANDS
+
+    // if something truly heinous is posted, 
+    // clear the screen by posting a really long message. 
+    if (message.text.toLowerCase() == "get that off my screen") {
+        var s = "Okay!\nI'll\nget\nthat\noff\nof" +
+            "\nyour\nscreen\nno\nproblem.\n\n\n";
+
+        postToGroup(s);
+
+    }
+    //Pay respects.
+    if (args[0] == "f" && payRespects){
+        postToGroup("F");
+        payRespects = false;
+        setTimeout(function() {
+            payRespects = true;
+        }, 10000);
+    }
+
+
+    switch (args[0]) {
+
+        // post the lenny face when asked. 
+        // the lenny face text is in a saved file in the tools folder. 
+        case "(len)":
+        case "lenny":
+        case "!len":
+            fs.readFile(TOOLS_FOLDER + 'lenny.txt', "utf8", function (err, data) {
+                postToGroup(data);
+            });
+            break;
+
+        // get tcount - a random number between 1 and 100. 
+        // NO REROLLS
+        case "!tcount":
+            
+            tCount(message);
+            break;
+        case "!tstats":
+            tStats(message);
+            break;
+        // Call the pupper bot when cute pics are needed. 
+        case "sos":
+        case "!sos":
+        case "!pup":
+            pupper_bot();
+            break;
+
+        // call the wikipedia random fact bot. 
+        case "!wikifact":
+            // new args are needed because the args array
+            // is all in lower case. The Wikipedia API is 
+            // case sensitive (for all title words after the first). 
+            var newArgs = message.text.split(" ");
+
+            // if there's a word after "wikifact" find the article
+            if (newArgs[1]) {
+                var article = newArgs[1];
+                var i = 1;
+                while (newArgs[++i]) {
+                    article += "%20" + newArgs[i];
+                }
+                randomSentenceFromWikipedia(article);
+            } else {
+                postToGroup("Enter an article title");
+            }
+            break;
+
+        // This calls the xkcd api module. Posts image and alt text for 
+        // a random, or a specified XKCD comic. 
+        case "!xkcd":
+            if (args[1]) {
+                if (args[1] == "latest") {
+                    xkcd.latest(function (error, response) {
+                        if (error) console.error(error);
+                        else makeXKCDPost(response);
+                    });
+                } else if (args[1] == "random") {
+                    xkcd.random(function (error, response) {
+                        if (error) console.error(error);
+                        else makeXKCDPost(response);
+                    });
+                } else if (args[1] == "help") {
+                    postToGroup("Get latest comic: '!xkcd latest'" +
+                        "\nGet random comic: !xkcd or " +
+                        "!xkcd random\nGetspecific comic: " +
+                        "!xkcd 274"
+                    );
+                } else if (isNaN(args[1])) {
+                    postToGroup("Command not recognized. try !xkcd help");
+                } else {
+                    xkcd.get(args[1], function (error, response) {
+                        if (error) console.error(error);
+                        else makeXKCDPost(response);
+                    });
+                }
+            } else {
+                xkcd.random(function (error, response) {
+                    if (error) console.error(error);
+                    else makeXKCDPost(response);
+                });
+            }
+            break;
+
+        // This posts an amusing picture when asked. 
+        // The picture is hosted from the tools folder. 
+        case "!balls":
+            postLocalImage("balls.jpg");
+            break;
+        case "!approve":
+            postLocalImage("kodiApprove.jpg");
+            break;
+        case "!reject":
+            postLocalImage("kodiReject.jpg");
+            break;
+        case "!beans":
+            getNonSticky(1, 'beansinthings');
+    }
+
+    for (var index = 0; index<args.length; index++){
+        if (args[index] == "rediculous"){
+              postToGroup("*ridiculous");
+              break;
+        }
+    }
+}
 
 // This crafts two posts from a comic object from the 
 // XKCD api - one with the image and one with the alt text. 
@@ -439,7 +440,7 @@ function tStats(message) {
         let message = 'Last 7 day stats:\n';
         for (let i = 0; i<results[0].length; i++){
             let user = results[0][i];
-            message += `${user.Name}: ${user.AverageT}\n`;
+            message += `${user.Name}: ${user.AverageT} (${user.numRecords})\n`;
         }
         postToGroup(message);
     }).catch((e) => {
