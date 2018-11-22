@@ -444,6 +444,12 @@ function tStats(message) {
         postToGroup(message);
     }).catch((e) => {
         console.log(e);  
+    }).then(() => {
+        db.end((err) => {
+            console.log("db connection closed");
+            if (err) 
+                console.log(err);
+        });
     });
     
     // handle printing stats to user
@@ -549,6 +555,7 @@ function addTStatsToDatabase(tcount, messageObj){
            resolve(false); 
         }).then(()=> {
             db.end((err) => {
+                console.log("db connection closed");
                 if (err) 
                     console.log(err);
             });
