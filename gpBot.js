@@ -222,8 +222,10 @@ function handleMessage(message) {
             postLocalImage("balls.jpg");
             break;
         case "!approve":
+        case "!accept":
             postLocalImage("kodiApprove.jpg");
             break;
+        case "!deny":
         case "!reject":
             postLocalImage("kodiReject.jpg");
             break;
@@ -401,7 +403,7 @@ function getNonSticky(i, subreddit) {
 }
 
 function postLocalImage(filename){
-    postToGroup(`http://preznix.shawnrast.com:${PORT}/pics/${filename}`);
+    postToGroup(`http://gpbot.shawnrast.com/pics/${filename}`);
 }
 
 function tCount(messageObj) {
@@ -415,6 +417,11 @@ function tCount(messageObj) {
 	addTStatsToDatabase(tcount, messageObj).then((isReroll) => {
         if (!isReroll) {
 	        postToGroup(`${userTypedTcount}: ${tcount}`);
+
+            if (tcount == 69) {
+                postToGroup("n i c e");
+            }
+
         } else {
             postToGroup('N O R E R O L L S');
         }
