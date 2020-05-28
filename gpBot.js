@@ -231,6 +231,10 @@ function handleMessage(message) {
             break;
         case "!beans":
             getNonSticky(1, 'beansinthings');
+            break;
+        case "!grump":
+            postLocalImage("grump.jpg");
+            break;
     }
 
     for (var index = 0; index<args.length; index++){
