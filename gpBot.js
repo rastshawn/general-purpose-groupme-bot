@@ -407,7 +407,7 @@ function getNonSticky(i, subreddit) {
 }
 
 function postLocalImage(filename){
-    postToGroup(`http://gpbot.shawnrast.com/pics/${filename}`);
+    postToGroup(`https://gpbot.shawnrast.com/pics/${filename}`);
 }
 
 function tCount(messageObj) {
