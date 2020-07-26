@@ -242,6 +242,10 @@ function handleMessage(message) {
               postToGroup("*ridiculous");
               break;
         }
+        if (args[index] == "cloud") {
+            postLocalImage("cloud.jpeg");
+            break;
+        }
     }
 }
 
