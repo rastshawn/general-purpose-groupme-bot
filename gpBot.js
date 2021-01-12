@@ -235,6 +235,15 @@ function handleMessage(message) {
         case "!grump":
             postLocalImage("grump.jpg");
             break;
+        case "!👏":
+            let newMessage = message;
+            newMessage = newMessage.text.replace(/ /g, '👏');
+            postToGroup(newMessage.substr(2));
+            break;
+        case "catjam":
+        case "!catjam":
+            postLocalImage("catjam.gif");
+            break;
     }
 
     for (var index = 0; index<args.length; index++){
