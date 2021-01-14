@@ -247,10 +247,10 @@ function handleMessage(message) {
     }
 
     for (var index = 0; index<args.length; index++){
-        if (args[index] == "rediculous"){
-              postToGroup("*ridiculous");
-              break;
-        }
+        // if (args[index] == "rediculous"){
+        //      postToGroup("*ridiculous");
+        //      break;
+        // }
         if (args[index] == "cloud") {
             postLocalImage("cloud.jpeg");
             break;
