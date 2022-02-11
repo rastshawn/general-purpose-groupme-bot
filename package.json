@@ -6,12 +6,14 @@
   "dependencies": {
     "body-parser": "^1.16.0",
     "child_process": "^1.0.2",
+    "emoji-regex": "^10.0.0",
     "express": "^4.14.1",
+    "morse": "^0.1.0",
     "mysql": "^2.16.0",
     "request": "^2.88.0",
+    "wordlist-english": "^1.2.1",
     "xkcd-api": "^1.0.1"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
