@@ -2,7 +2,7 @@ const morse = require('morse');
 const emojiRegex = require('emoji-regex');
 const wordlist = require('wordlist-english');
 const englishWords = wordlist['english'];
-
+englishWords.push("sos", "f");
 let a = ['a', 'b'];
 
 // const countDistinctChars = function(str) {
@@ -107,10 +107,10 @@ let test3 = 'a✉️✉️✉️ ✉️ 📦✉️ 📦✉️✉️ / 📦📦 �
 let test4 = '📦📦📦 ✉️ ✉️.📦 ✉️📦📦 / ✉️✉️ 📦';
 
 
-console.log(unMorse(test1));
-console.log(unMorse(test2));
-console.log(unMorse(test3));
-console.log(unMorse(test4));
+//console.log(unMorse(test1));
+//console.log(unMorse(test2));
+//console.log(unMorse(test3));
+//console.log(unMorse(test4));
 
 //console.log(countDistinctChars(test1.replaceAll(' ', '').replaceAll('/', '')));
 
@@ -122,4 +122,4 @@ console.log(unMorse(test4));
 // englishWords.includes("send"),
 // englishWords.includes("me"));
 
-export { unMorse };
+module.exports = { unMorse };

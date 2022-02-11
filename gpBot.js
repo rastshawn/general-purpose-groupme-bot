@@ -13,7 +13,8 @@ var TEST_PORT = 2501;
 var PORT = 2500;
 
 var config = require('./config');
-
+const unMorser = require('./unmorse.js');
+const unMorse = unMorser.unMorse;
 var botID = config.botID; 
 var testID = config.testID; 
 var botName = config.botName;
@@ -244,6 +245,14 @@ function handleMessage(message) {
         case "!catjam":
             postLocalImage("catjam.gif");
             break;
+        case "!unmorse":
+            let remainingCommand = message.text.replaceAll("!unmorse", "");
+            postToGroup(unMorse(remainingCommand));
+            break;
+        case "!featurerequest":
+            postToGroup(`your request has been placed in the suggestion box
+----------> 🗑️`);
+            break;
     }
 
     for (var index = 0; index<args.length; index++){
@@ -253,6 +262,11 @@ function handleMessage(message) {
         // }
         if (args[index] == "cloud") {
             postLocalImage("cloud.jpeg");
+            break;
+        }
+
+        if (args[index] == "superbowl") {
+            getNonSticky(index+1, "superbowl"); // uses index for pseudo random
             break;
         }
     }
