@@ -10,6 +10,7 @@
 // Allows for dev work without shutting down.
 var TEST_MODE = false;
 var TEST_PORT = 2501;
+var LOCAL_MODE = false;
 var PORT = 2500;
 
 var config = require('./config');
@@ -46,6 +47,8 @@ var fs = require('fs'); // for writing information, like the swear jar
 var request = require('request'); // for reading Wikipedia 
 var xkcd = require('xkcd-api'); // api for grabbing XKCD comics
 const mysql = require('mysql'); // db
+
+const csv = require('csv-parser');
 
 // set up db
 let dbCredentials = config.dbCreds;
@@ -241,6 +244,10 @@ function handleMessage(message) {
             newMessage = newMessage.text.replace(/ /g, '👏');
             postToGroup(newMessage.substr(2));
             break;
+        case "!borb":
+        case "borb":
+            postBirdMessage();
+            break;
         case "catjam":
         case "!catjam":
             postLocalImage("catjam.gif");
@@ -270,6 +277,107 @@ function handleMessage(message) {
             break;
         }
     }
+}
+
+let WINGSPAN_LIST = [];
+function loadWingspanInfo() {
+    // read in the CSV saved from (https://boardgamegeek.com/filepage/193164/wingspan-spreadsheet-bird-cards-bonus-cards-end-ro) and save into a global array
+    /*
+        name:
+        latinName:
+        additionalText: 
+    */
+    let results = [];
+
+    fs.createReadStream('wingspan-20221201.csv') // Replace 'your_file.csv' with the path to your CSV file
+    .pipe(csv())
+    .on('data', (data) => {
+
+        // Process each row and add it to the results array as an object
+        let newBird = {
+            commonName: data["Common name"],
+            latinName: data["Scientific name"],
+            additionalText: data["Flavor text"]
+        };
+        WINGSPAN_LIST.push(newBird);
+    })
+    .on('end', () => {
+        // All rows have been processed
+        console.log(WINGSPAN_LIST);
+    });
+   
+}
+loadWingspanInfo();
+function postBirdMessage(optBirdName) {
+    let message = "";
+
+    let bird = {};
+    if (optBirdName) {
+        // idk try to fuzzy match on bird name?
+    } else {
+        const randomIndex = Math.floor(Math.random() * WINGSPAN_LIST.length);
+        bird = WINGSPAN_LIST[randomIndex];
+    }
+
+    // store latin name from index for searching wikipedia
+    // store common name and interesting text for the message
+    // https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=Melanerpes formicivorus&prop=pageimages&format=json&piprop=original
+
+    let url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${bird.latinName}&prop=pageimages&format=json&piprop=original`
+	request({
+		url: url,
+		method: "GET"
+	},
+
+		function (error, response, body) {
+			if (error) console.log(error);
+			var parsedResponse = JSON.parse(body);
+			try {
+
+				// This nonsense with object keys is necessary
+				// because Wikipedia's api returns the article
+				// inside an object whose name changes every 
+				// single time. 
+
+				
+				var keys = Object.keys(parsedResponse.query.pages);
+				//article = article[keys[0]].extract;
+                let imageLink = "";
+                // loop through the article ID keys to see which one is labled with index 1
+                keys.forEach(key => {
+                    let articleObj = parsedResponse.query.pages[key];
+                    if (articleObj) {
+                        if (articleObj.index == 1) {
+                            imageLink = articleObj.original.source;
+                        }
+                    }
+                });
+
+				if (imageLink == "") {
+					postToGroup("image not found");
+				} else {
+                    
+					postToGroup(imageLink);
+                    let nextMessage = `${bird.commonName}
+${bird.latinName}
+${bird.additionalText}`;
+                    postToGroup(nextMessage);
+				}
+			} catch (error) {
+				// A lot can go wrong with the wikipedia API - 
+				// I wrote this really quickly and couldn't figure out
+				// all of the nuance in a half hour. 
+				// Rather than return nothing (and shut down the bot) 
+				// if the API doesn't work as I expect, or if an article
+				// with the specified title doesn't exist, it 
+				// provides the user with at least some output
+
+				postToGroup("something broke");
+			}
+		}
+	);
+
+    
 }
 
 // This crafts two posts from a comic object from the 
@@ -353,6 +461,10 @@ function randomSentenceFromWikipedia(article) {
 
 // Posts the specified text to the group the bot is in. 
 function postToGroup(text) {
+    if (LOCAL_MODE) {
+        console.log(text);
+        return;
+    }
 	request({
 		url: 'https://api.groupme.com/v3/bots/post',
 		method: "POST",
