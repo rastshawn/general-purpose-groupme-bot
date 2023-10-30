@@ -104,6 +104,7 @@ app.post('/groupme', function (req, res) {
         let message = JSON.parse(string);
         handleMessage(message);
     });
+    res.send("OK");
 });
 
 function handleMessage(message) {
@@ -479,7 +480,6 @@ function postToGroup(text) {
         }
 	);
 }
-
 // This bot cycles through a series of animal-related subreddits, and when called, 
 // posts the first image on the 'hot' feed for that subreddit. 
 
