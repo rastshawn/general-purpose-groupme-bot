@@ -290,7 +290,7 @@ function loadWingspanInfo() {
     */
     let results = [];
 
-    fs.createReadStream('wingspan-20221201.csv') // Replace 'your_file.csv' with the path to your CSV file
+    fs.createReadStream(`${__dirname}/wingspan-20221201.csv`) // Replace 'your_file.csv' with the path to your CSV file
     .pipe(csv())
     .on('data', (data) => {
 
@@ -298,6 +298,7 @@ function loadWingspanInfo() {
         let newBird = {
             commonName: data["Common name"],
             latinName: data["Scientific name"],
+            wingspan: data["Wingspan"],
             additionalText: data["Flavor text"]
         };
         WINGSPAN_LIST.push(newBird);
@@ -361,6 +362,7 @@ function postBirdMessage(optBirdName) {
 					postToGroup(imageLink);
                     let nextMessage = `${bird.commonName}
 ${bird.latinName}
+${bird.wingspan}cm
 ${bird.additionalText}`;
                     postToGroup(nextMessage);
 				}
